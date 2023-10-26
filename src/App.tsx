@@ -2,9 +2,33 @@ import { useMachine } from "@xstate/react"
 import { useEffect } from "react"
 import Table from "./components/Table"
 import { machine } from "./state"
+import { useSwipeable } from "react-swipeable"
 
 const App = () => {
 	const [state, send] = useMachine(machine)
+
+	const handlers = useSwipeable({
+		onSwipedLeft: () =>
+			send({
+				type: "CHANGE_DIRECTION",
+				direction: "left",
+			}),
+		onSwipedRight: () =>
+			send({
+				type: "CHANGE_DIRECTION",
+				direction: "right",
+			}),
+		onSwipedUp: () =>
+			send({
+				type: "CHANGE_DIRECTION",
+				direction: "up",
+			}),
+		onSwipedDown: () =>
+			send({
+				type: "CHANGE_DIRECTION",
+				direction: "down",
+			}),
+	})
 
 	useEffect(() => {
 		const handler = (event: KeyboardEvent) => {
@@ -89,7 +113,10 @@ const App = () => {
 	})()
 
 	return (
-		<div className="flex justify-center items-center w-screen h-screen">
+		<div
+			className="flex justify-center items-center w-screen h-screen"
+			{...handlers}
+		>
 			<Table table={table} />
 		</div>
 	)
