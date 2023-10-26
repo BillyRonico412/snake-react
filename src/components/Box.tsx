@@ -9,7 +9,7 @@ const Box = (props: BoxProps) => {
 		}
 		return "bg-white"
 	})()
-	return <div className={`w-8 aspect-square ${className}`} />
+	return <div className={`w-4 aspect-square ${className}`} />
 }
 
 export default Box

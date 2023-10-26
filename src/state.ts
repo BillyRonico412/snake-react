@@ -33,10 +33,10 @@ type Event =
 export const machine = createMachine<Context, Event>({
 	predictableActionArguments: true,
 	context: {
-		speed: 200,
+		speed: 100,
 		currentDirection: "right",
 		newDirection: "right",
-		size: 10,
+		size: 20,
 		snake: [{ x: 0, y: 0 }],
 		food: { x: 5, y: 5 },
 	},
@@ -108,7 +108,7 @@ export const machine = createMachine<Context, Event>({
 						actions: assign((context) => {
 							const [head] = context.snake
 							const newHead = ((): Position => {
-								switch (context.currentDirection) {
+								switch (context.newDirection) {
 									case "up":
 										return { x: head.x - 1, y: head.y }
 									case "down":
@@ -165,10 +165,8 @@ export const machine = createMachine<Context, Event>({
 				RESET: {
 					target: "idle",
 					actions: assign({
-						speed: 200,
 						currentDirection: "right",
 						newDirection: "right",
-						size: 10,
 						snake: [{ x: 0, y: 0 }],
 						food: { x: 5, y: 5 },
 					}),
