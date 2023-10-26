@@ -22,7 +22,7 @@ const Box = (props: BoxProps) => {
 				return "w-2"
 		}
 	})()
-	return <div className={`w-4 aspect-square ${classNameBg} ${classNameSize}`} />
+	return <div className={`aspect-square ${classNameBg} ${classNameSize}`} />
 }
 
 export default Box
