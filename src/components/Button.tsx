@@ -1,5 +1,7 @@
+import { ReactNode } from "react"
+
 interface ButtonProps {
-	text: string
+	icon: ReactNode
 	onClick: () => void
 }
 
@@ -7,9 +9,9 @@ const Button = (props: ButtonProps) => {
 	return (
 		<button
 			onClick={props.onClick}
-			className="font-bold bg-black text-white px-10 py-3 rounded text-lg"
+			className="font-bold bg-black text-white px-4 py-2 rounded text-2xl"
 		>
-			{props.text}
+			{props.icon}
 		</button>
 	)
 }

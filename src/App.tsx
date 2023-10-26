@@ -5,6 +5,10 @@ import Button from "./components/Button"
 import ButtonCheck from "./components/ButtonCheck"
 import Table from "./components/Table"
 import { SizeValue, SpeedValue, machine } from "./state"
+import { GiSnakeBite } from "react-icons/gi"
+import { LuArrowLeftCircle, LuCog, LuPlay } from "react-icons/lu"
+import { MdOutlineLoop, MdSpeed } from "react-icons/md"
+import { BsTextareaResize } from "react-icons/bs"
 
 const speedInfos: [SpeedValue, string][] = [
 	[200, "Slow"],
@@ -83,19 +87,21 @@ const App = () => {
 	if (state.matches("idle")) {
 		return (
 			<div className="w-screen h-screen flex flex-col gap-y-16 justify-center items-center">
-				<h1 className="text-6xl font-bold">Snake</h1>
-				<div className="flex flex-col gap-y-6">
+				<h1 className="text-9xl font-bold">
+					<GiSnakeBite />
+				</h1>
+				<div className="flex gap-x-4 items-center">
 					<Button
 						onClick={() => {
 							send("PLAY")
 						}}
-						text="Play"
+						icon={<LuPlay />}
 					/>
 					<Button
 						onClick={() => {
 							send("SETTINGS")
 						}}
-						text="Settings"
+						icon={<LuCog />}
 					/>
 				</div>
 			</div>
@@ -104,20 +110,22 @@ const App = () => {
 	if (state.matches("gameover")) {
 		return (
 			<div className="w-screen h-screen flex flex-col gap-y-8 justify-center items-center">
-				<h1 className="text-4xl font-bold">Game Over</h1>
+				<h1 className="text-2xl font-bold">Game Over</h1>
 				<p className="text-lg">Score: {state.context.score}</p>
-				<Button
-					onClick={() => {
-						send("PLAY_AGAIN")
-					}}
-					text="Play again"
-				/>
-				<Button
-					onClick={() => {
-						send("BACK")
-					}}
-					text="BACK"
-				/>
+				<div className="flex gap-x-4">
+					<Button
+						onClick={() => {
+							send("PLAY_AGAIN")
+						}}
+						icon={<MdOutlineLoop />}
+					/>
+					<Button
+						onClick={() => {
+							send("BACK")
+						}}
+						icon={<LuArrowLeftCircle />}
+					/>
+				</div>
 			</div>
 		)
 	}
@@ -126,10 +134,13 @@ const App = () => {
 		return (
 			<div className="w-screen h-screen flex flex-col gap-y-8 justify-center items-center">
 				<div className="flex flex-col gap-y-4">
-					<p className="text-center font-bold text-xl">Level</p>
+					<div className="flex justify-center font-bold text-5xl">
+						<MdSpeed />
+					</div>
 					<div>
 						{speedInfos.map(([speed, text]) => (
 							<ButtonCheck
+								key={speed}
 								text={text}
 								active={state.context.speed === Number(speed)}
 								onClick={() => {
@@ -145,10 +156,13 @@ const App = () => {
 					</div>
 				</div>
 				<div className="flex flex-col gap-y-2">
-					<p className="text-center font-bold text-xl">Size</p>
+					<div className="flex justify-center font-bold text-4xl">
+						<BsTextareaResize />
+					</div>
 					<div>
 						{sizeInfos.map(([size, text]) => (
 							<ButtonCheck
+								key={size}
 								text={text}
 								active={state.context.size === Number(size)}
 								onClick={() => {
@@ -163,7 +177,7 @@ const App = () => {
 						))}
 					</div>
 				</div>
-				<Button text="Back" onClick={() => send("BACK")} />
+				<Button icon={<LuArrowLeftCircle />} onClick={() => send("BACK")} />
 			</div>
 		)
 	}
@@ -194,7 +208,7 @@ const App = () => {
 
 		return (
 			<div
-				className="flex flex-col gap-y-4 justify-center items-center w-screen h-screen"
+				className="flex flex-col gap-y-4 justify-center items-center w-screen h-screen font-bold"
 				{...handlers}
 			>
 				<p>Score: {state.context.score}</p>
