@@ -1,0 +1,179 @@
+import { assign, createMachine } from "xstate"
+
+type Direction = "left" | "right" | "up" | "down"
+interface Position {
+	x: number
+	y: number
+}
+
+interface Context {
+	speed: number
+	currentDirection: Direction
+	newDirection: Direction
+	size: number
+	snake: Position[]
+	food: Position
+}
+
+type Event =
+	| {
+			type: "PLAY"
+	  }
+	| {
+			type: "CHANGE_DIRECTION"
+			direction: Direction
+	  }
+	| {
+			type: "MOVE"
+	  }
+	| {
+			type: "RESET"
+	  }
+
+export const machine = createMachine<Context, Event>({
+	predictableActionArguments: true,
+	context: {
+		speed: 200,
+		currentDirection: "right",
+		newDirection: "right",
+		size: 10,
+		snake: [{ x: 0, y: 0 }],
+		food: { x: 5, y: 5 },
+	},
+	initial: "idle",
+	states: {
+		idle: {
+			on: {
+				PLAY: "playing",
+			},
+		},
+		playing: {
+			invoke: {
+				src: (context) => (callback) => {
+					const interval = setInterval(() => {
+						callback("MOVE")
+					}, context.speed)
+					return () => clearInterval(interval)
+				},
+			},
+			on: {
+				CHANGE_DIRECTION: {
+					actions: assign({
+						newDirection: (context, event) => {
+							switch (event.direction) {
+								case "up":
+									if (context.currentDirection === "down") {
+										return "down"
+									}
+									return "up"
+								case "down":
+									if (context.currentDirection === "up") {
+										return "up"
+									}
+									return "down"
+								case "left":
+									if (context.currentDirection === "right") {
+										return "right"
+									}
+									return "left"
+								case "right":
+									if (context.currentDirection === "left") {
+										return "left"
+									}
+									return "right"
+							}
+						},
+					}),
+				},
+				MOVE: [
+					{
+						cond: (context) =>
+							(context.currentDirection === "up" && context.snake[0].x === 0) ||
+							(context.currentDirection === "down" &&
+								context.snake[0].x === context.size - 1) ||
+							(context.currentDirection === "left" &&
+								context.snake[0].y === 0) ||
+							(context.currentDirection === "right" &&
+								context.snake[0].y === context.size - 1) ||
+							context.snake
+								.slice(1)
+								.some(
+									(posSnake) =>
+										posSnake.x === context.snake[0].x &&
+										posSnake.y === context.snake[0].y,
+								),
+						target: "gameover",
+					},
+					{
+						actions: assign((context) => {
+							const [head] = context.snake
+							const newHead = ((): Position => {
+								switch (context.currentDirection) {
+									case "up":
+										return { x: head.x - 1, y: head.y }
+									case "down":
+										return { x: head.x + 1, y: head.y }
+									case "left":
+										return { x: head.x, y: head.y - 1 }
+									case "right":
+										return { x: head.x, y: head.y + 1 }
+								}
+							})()
+							if (
+								newHead.x === context.food.x &&
+								newHead.y === context.food.y
+							) {
+								const allPositionFree = ((): Position[] => {
+									const allPositionFree: Position[] = []
+									for (let i = 0; i < context.size; i++) {
+										for (let j = 0; j < context.size; j++) {
+											if (
+												context.snake.every(
+													(posSnake) => posSnake.x !== i && posSnake.y !== j,
+												) &&
+												context.food.x !== i &&
+												context.food.y !== j
+											) {
+												allPositionFree.push({
+													x: i,
+													y: j,
+												})
+											}
+										}
+									}
+									return allPositionFree
+								})()
+								return {
+									snake: [newHead, ...context.snake],
+									food: allPositionFree[
+										Math.floor(Math.random() * allPositionFree.length)
+									],
+									currentDirection: context.newDirection,
+								}
+							}
+							return {
+								snake: [newHead, ...context.snake.slice(0, -1)],
+								currentDirection: context.newDirection,
+							}
+						}),
+					},
+				],
+			},
+		},
+		gameover: {
+			on: {
+				RESET: {
+					target: "idle",
+					actions: assign({
+						speed: 200,
+						currentDirection: "right",
+						newDirection: "right",
+						size: 10,
+						snake: [{ x: 0, y: 0 }],
+						food: { x: 5, y: 5 },
+					}),
+				},
+			},
+		},
+	},
+})
