@@ -108,9 +108,15 @@ const App = () => {
 				<p className="text-lg">Score: {state.context.score}</p>
 				<Button
 					onClick={() => {
-						send("RESET")
+						send("PLAY_AGAIN")
 					}}
 					text="Play again"
+				/>
+				<Button
+					onClick={() => {
+						send("BACK")
+					}}
+					text="BACK"
 				/>
 			</div>
 		)
@@ -172,6 +178,14 @@ const App = () => {
 				}
 			}
 			for (const posSnake of state.context.snake) {
+				if (
+					posSnake.x < 0 ||
+					posSnake.y < 0 ||
+					posSnake.x >= state.context.size ||
+					posSnake.y >= state.context.size
+				) {
+					continue
+				}
 				table[posSnake.x][posSnake.y] = true
 			}
 			table[state.context.food.x][state.context.food.y] = true

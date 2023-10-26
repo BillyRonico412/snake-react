@@ -31,7 +31,10 @@ type Event =
 			type: "MOVE"
 	  }
 	| {
-			type: "RESET"
+			type: "PLAY_AGAIN"
+	  }
+	| {
+			type: "BACK"
 	  }
 	| {
 			type: "SETTINGS"
@@ -67,6 +70,13 @@ export const machine = createMachine<Context, Event>({
 			},
 		},
 		playing: {
+			entry: assign({
+				currentDirection: "right",
+				newDirection: "right",
+				snake: [{ x: 0, y: 0 }],
+				food: { x: 5, y: 5 },
+				score: 0,
+			}),
 			invoke: {
 				src: (context) => (callback) => {
 					const interval = setInterval(() => {
@@ -107,13 +117,12 @@ export const machine = createMachine<Context, Event>({
 				MOVE: [
 					{
 						cond: (context) =>
-							(context.currentDirection === "up" && context.snake[0].x === 0) ||
+							(context.currentDirection === "up" && context.snake[0].x < 0) ||
 							(context.currentDirection === "down" &&
-								context.snake[0].x === context.size - 1) ||
-							(context.currentDirection === "left" &&
-								context.snake[0].y === 0) ||
+								context.snake[0].x > context.size - 1) ||
+							(context.currentDirection === "left" && context.snake[0].y < 0) ||
 							(context.currentDirection === "right" &&
-								context.snake[0].y === context.size - 1) ||
+								context.snake[0].y > context.size - 1) ||
 							context.snake
 								.slice(1)
 								.some(
@@ -182,16 +191,8 @@ export const machine = createMachine<Context, Event>({
 		},
 		gameover: {
 			on: {
-				RESET: {
-					target: "idle",
-					actions: assign({
-						currentDirection: "right",
-						newDirection: "right",
-						snake: [{ x: 0, y: 0 }],
-						food: { x: 5, y: 5 },
-						score: 0,
-					}),
-				},
+				PLAY_AGAIN: "playing",
+				BACK: "idle",
 			},
 		},
 		settings: {
