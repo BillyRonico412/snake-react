@@ -105,7 +105,7 @@ const App = () => {
 		return (
 			<div className="w-screen h-screen flex flex-col gap-y-8 justify-center items-center">
 				<h1 className="text-4xl font-bold">Game Over</h1>
-				<p>Votre score est de {state.context.score}</p>
+				<p className="text-lg">Score: {state.context.score}</p>
 				<Button
 					onClick={() => {
 						send("RESET")
