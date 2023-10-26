@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  overscroll-behavior: none;
+}
+
 body {
   font-family: 'Playpen Sans', cursive;
 }
