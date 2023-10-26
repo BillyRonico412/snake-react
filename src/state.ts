@@ -1,5 +1,8 @@
 import { assign, createMachine } from "xstate"
 
+export type SpeedValue = 200 | 100 | 50
+export type SizeValue = 10 | 20 | 30
+
 type Direction = "left" | "right" | "up" | "down"
 interface Position {
 	x: number
@@ -7,12 +10,13 @@ interface Position {
 }
 
 interface Context {
-	speed: number
+	speed: SpeedValue
 	currentDirection: Direction
 	newDirection: Direction
-	size: number
+	size: SizeValue
 	snake: Position[]
 	food: Position
+	score: number
 }
 
 type Event =
@@ -29,6 +33,19 @@ type Event =
 	| {
 			type: "RESET"
 	  }
+	| {
+			type: "SETTINGS"
+	  }
+	| {
+			type: "CHANGE_SETTINGS"
+			payload: {
+				speed?: SpeedValue
+				size?: SizeValue
+			}
+	  }
+	| {
+			type: "BACK"
+	  }
 
 export const machine = createMachine<Context, Event>({
 	predictableActionArguments: true,
@@ -39,12 +56,14 @@ export const machine = createMachine<Context, Event>({
 		size: 20,
 		snake: [{ x: 0, y: 0 }],
 		food: { x: 5, y: 5 },
+		score: 0,
 	},
 	initial: "idle",
 	states: {
 		idle: {
 			on: {
 				PLAY: "playing",
+				SETTINGS: "settings",
 			},
 		},
 		playing: {
@@ -149,6 +168,7 @@ export const machine = createMachine<Context, Event>({
 										Math.floor(Math.random() * allPositionFree.length)
 									],
 									currentDirection: context.newDirection,
+									score: context.score + 1,
 								}
 							}
 							return {
@@ -169,8 +189,22 @@ export const machine = createMachine<Context, Event>({
 						newDirection: "right",
 						snake: [{ x: 0, y: 0 }],
 						food: { x: 5, y: 5 },
+						score: 0,
 					}),
 				},
+			},
+		},
+		settings: {
+			on: {
+				CHANGE_SETTINGS: {
+					actions: assign((context, event) => {
+						return {
+							speed: event.payload.speed ?? context.speed,
+							size: event.payload.size ?? context.size,
+						}
+					}),
+				},
+				BACK: "idle",
 			},
 		},
 	},
