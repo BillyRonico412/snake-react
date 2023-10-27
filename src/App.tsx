@@ -1,14 +1,32 @@
 import { useMachine } from "@xstate/react"
 import { useEffect } from "react"
+import { BsTextareaResize } from "react-icons/bs"
+import { GiSnakeBite } from "react-icons/gi"
+import { LuArrowLeftCircle, LuCog, LuPlay } from "react-icons/lu"
+import { MdOutlineLoop, MdSpeed, MdSportsScore } from "react-icons/md"
 import { useSwipeable } from "react-swipeable"
 import Button from "./components/Button"
 import ButtonCheck from "./components/ButtonCheck"
 import Table from "./components/Table"
-import { SizeValue, SpeedValue, machine } from "./state"
-import { GiSnakeBite } from "react-icons/gi"
-import { LuArrowLeftCircle, LuCog, LuPlay } from "react-icons/lu"
-import { MdOutlineLoop, MdSpeed } from "react-icons/md"
-import { BsTextareaResize } from "react-icons/bs"
+import {
+	SizeValue,
+	SpeedValue,
+	machine,
+	sizeValues,
+	speedValues,
+} from "./state"
+
+const getHighDcore = (speed: SpeedValue, size: SizeValue): number => {
+	const score = window.localStorage.getItem(`highScore-${speed}-${size}`)
+	if (score === null) {
+		return 0
+	}
+	return Number(score)
+}
+
+const setHighScore = (speed: SpeedValue, size: SizeValue, score: number) => {
+	window.localStorage.setItem(`highScore-${speed}-${size}`, String(score))
+}
 
 const speedInfos: [SpeedValue, string][] = [
 	[200, "Slow"],
@@ -84,6 +102,11 @@ const App = () => {
 		}
 	}, [send])
 
+	useEffect(() => {
+		window.localStorage.setItem("speed", String(state.context.speed))
+		window.localStorage.setItem("size", String(state.context.size))
+	}, [state.context.speed, state.context.size])
+
 	if (state.matches("idle")) {
 		return (
 			<div className="w-screen h-screen flex flex-col gap-y-16 justify-center items-center">
@@ -99,6 +122,12 @@ const App = () => {
 					/>
 					<Button
 						onClick={() => {
+							send("HIGH_SCORE")
+						}}
+						icon={<MdSportsScore />}
+					/>
+					<Button
+						onClick={() => {
 							send("SETTINGS")
 						}}
 						icon={<LuCog />}
@@ -108,9 +137,18 @@ const App = () => {
 		)
 	}
 	if (state.matches("gameover")) {
+		if (
+			getHighDcore(state.context.speed, state.context.size) <
+			state.context.score
+		) {
+			setHighScore(state.context.speed, state.context.size, state.context.score)
+		}
 		return (
 			<div className="w-screen h-screen flex flex-col gap-y-8 justify-center items-center">
 				<h1 className="text-2xl font-bold">Game Over</h1>
+				<p className="text-lg">
+					High Score: {getHighDcore(state.context.speed, state.context.size)}
+				</p>
 				<p className="text-lg">Score: {state.context.score}</p>
 				<div className="flex gap-x-4">
 					<Button
@@ -177,6 +215,44 @@ const App = () => {
 						))}
 					</div>
 				</div>
+				<Button icon={<LuArrowLeftCircle />} onClick={() => send("BACK")} />
+			</div>
+		)
+	}
+
+	if (state.matches("highscore")) {
+		return (
+			<div className="w-screen h-screen flex flex-col gap-y-8 justify-center items-center">
+				<table className="border-2 border-black">
+					<thead>
+						<tr className="bg-gray-100">
+							<th className="py-2 px-4">Speed</th>
+							<th className="py-2 px-4">Size</th>
+							<th className="py-2 px-4">High Score</th>
+						</tr>
+					</thead>
+					<tbody>
+						{speedValues.map((speed) =>
+							sizeValues.map((size) => (
+								<tr className="border">
+									<td className="text-center text-sm px-4 py-2">
+										{
+											speedInfos.find(
+												([speedValue]) => speedValue === speed,
+											)?.[1]
+										}
+									</td>
+									<td className="text-center text-sm px-4 py-2">
+										{sizeInfos.find(([sizeValue]) => sizeValue === size)?.[1]}
+									</td>
+									<td className="text-center text-sm px-4 py-2">
+										{getHighDcore(speed, size)}
+									</td>
+								</tr>
+							)),
+						)}
+					</tbody>
+				</table>
 				<Button icon={<LuArrowLeftCircle />} onClick={() => send("BACK")} />
 			</div>
 		)

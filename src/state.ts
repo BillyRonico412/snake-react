@@ -1,7 +1,26 @@
 import { assign, createMachine } from "xstate"
 
-export type SpeedValue = 200 | 100 | 50
-export type SizeValue = 10 | 20 | 30
+export const speedValues = [200, 100, 50] as const
+export const sizeValues = [10, 20, 30] as const
+
+export const getSpeedInLocalStorage = (): SpeedValue => {
+	const speed = localStorage.getItem("speed")
+	if (speed === null || !speedValues.includes(parseInt(speed) as SpeedValue)) {
+		return 100
+	}
+	return parseInt(speed) as SpeedValue
+}
+
+export const getSizeInLocalStorage = (): SizeValue => {
+	const size = localStorage.getItem("size")
+	if (size === null || !sizeValues.includes(parseInt(size) as SizeValue)) {
+		return 20
+	}
+	return parseInt(size) as SizeValue
+}
+
+export type SpeedValue = typeof speedValues[number]
+export type SizeValue = typeof sizeValues[number]
 
 type Direction = "left" | "right" | "up" | "down"
 interface Position {
@@ -37,6 +56,9 @@ type Event =
 			type: "BACK"
 	  }
 	| {
+			type: "HIGH_SCORE"
+	  }
+	| {
 			type: "SETTINGS"
 	  }
 	| {
@@ -53,10 +75,10 @@ type Event =
 export const machine = createMachine<Context, Event>({
 	predictableActionArguments: true,
 	context: {
-		speed: 100,
+		speed: getSpeedInLocalStorage(),
 		currentDirection: "right",
 		newDirection: "right",
-		size: 20,
+		size: getSizeInLocalStorage(),
 		snake: [{ x: 0, y: 0 }],
 		food: { x: 5, y: 5 },
 		score: 0,
@@ -67,6 +89,7 @@ export const machine = createMachine<Context, Event>({
 			on: {
 				PLAY: "playing",
 				SETTINGS: "settings",
+				HIGH_SCORE: "highscore",
 			},
 		},
 		playing: {
@@ -205,6 +228,11 @@ export const machine = createMachine<Context, Event>({
 						}
 					}),
 				},
+				BACK: "idle",
+			},
+		},
+		highscore: {
+			on: {
 				BACK: "idle",
 			},
 		},
