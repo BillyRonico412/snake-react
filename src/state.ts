@@ -1,5 +1,8 @@
 import { assign, createMachine } from "xstate"
 
+export type SpeedValue = 200 | 100 | 50
+export type SizeValue = 10 | 20 | 30
+
 type Direction = "left" | "right" | "up" | "down"
 interface Position {
 	x: number
@@ -7,12 +10,13 @@ interface Position {
 }
 
 interface Context {
-	speed: number
+	speed: SpeedValue
 	currentDirection: Direction
 	newDirection: Direction
-	size: number
+	size: SizeValue
 	snake: Position[]
 	food: Position
+	score: number
 }
 
 type Event =
@@ -27,7 +31,23 @@ type Event =
 			type: "MOVE"
 	  }
 	| {
-			type: "RESET"
+			type: "PLAY_AGAIN"
+	  }
+	| {
+			type: "BACK"
+	  }
+	| {
+			type: "SETTINGS"
+	  }
+	| {
+			type: "CHANGE_SETTINGS"
+			payload: {
+				speed?: SpeedValue
+				size?: SizeValue
+			}
+	  }
+	| {
+			type: "BACK"
 	  }
 
 export const machine = createMachine<Context, Event>({
@@ -39,15 +59,24 @@ export const machine = createMachine<Context, Event>({
 		size: 20,
 		snake: [{ x: 0, y: 0 }],
 		food: { x: 5, y: 5 },
+		score: 0,
 	},
 	initial: "idle",
 	states: {
 		idle: {
 			on: {
 				PLAY: "playing",
+				SETTINGS: "settings",
 			},
 		},
 		playing: {
+			entry: assign({
+				currentDirection: "right",
+				newDirection: "right",
+				snake: [{ x: 0, y: 0 }],
+				food: { x: 5, y: 5 },
+				score: 0,
+			}),
 			invoke: {
 				src: (context) => (callback) => {
 					const interval = setInterval(() => {
@@ -88,13 +117,12 @@ export const machine = createMachine<Context, Event>({
 				MOVE: [
 					{
 						cond: (context) =>
-							(context.currentDirection === "up" && context.snake[0].x === 0) ||
+							(context.currentDirection === "up" && context.snake[0].x < 0) ||
 							(context.currentDirection === "down" &&
-								context.snake[0].x === context.size - 1) ||
-							(context.currentDirection === "left" &&
-								context.snake[0].y === 0) ||
+								context.snake[0].x > context.size - 1) ||
+							(context.currentDirection === "left" && context.snake[0].y < 0) ||
 							(context.currentDirection === "right" &&
-								context.snake[0].y === context.size - 1) ||
+								context.snake[0].y > context.size - 1) ||
 							context.snake
 								.slice(1)
 								.some(
@@ -149,6 +177,7 @@ export const machine = createMachine<Context, Event>({
 										Math.floor(Math.random() * allPositionFree.length)
 									],
 									currentDirection: context.newDirection,
+									score: context.score + 1,
 								}
 							}
 							return {
@@ -162,15 +191,21 @@ export const machine = createMachine<Context, Event>({
 		},
 		gameover: {
 			on: {
-				RESET: {
-					target: "idle",
-					actions: assign({
-						currentDirection: "right",
-						newDirection: "right",
-						snake: [{ x: 0, y: 0 }],
-						food: { x: 5, y: 5 },
+				PLAY_AGAIN: "playing",
+				BACK: "idle",
+			},
+		},
+		settings: {
+			on: {
+				CHANGE_SETTINGS: {
+					actions: assign((context, event) => {
+						return {
+							speed: event.payload.speed ?? context.speed,
+							size: event.payload.size ?? context.size,
+						}
 					}),
 				},
+				BACK: "idle",
 			},
 		},
 	},
