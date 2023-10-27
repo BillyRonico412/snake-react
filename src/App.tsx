@@ -94,6 +94,10 @@ const App = () => {
 						direction: "right",
 					})
 					break
+
+				case " ":
+					send("PLAY_AGAIN")
+					break
 			}
 		}
 		window.addEventListener("keydown", handler)
