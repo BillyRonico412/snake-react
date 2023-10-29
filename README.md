@@ -24,8 +24,6 @@
 
 ## Overview
 
-![Screenshot](https://github.com/BillyRonico412/my-unsplash/assets/65350513/ae18d7a9-cf96-41cf-aecb-4124298b12d4)
-
 Snake is a classic snake game coded in React. The goal of the game is to eat as many apples as possible without biting your tail.
 
 - User story: I can choose a size of the grid
